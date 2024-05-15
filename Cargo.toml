@@ -1,0 +1,17 @@
+[package]
+name = "linear_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+clap = "3.1.18"
+rpassword = "7.3"
+keyring = "2"
+anyhow = "1.0"
+dialoguer = "0.11.0"
+console = "0.15.8"
+once_cell = "1.19.0"
