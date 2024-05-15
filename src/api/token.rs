@@ -1,4 +1,4 @@
-use keyring::{Entry};
+use keyring::Entry;
 use rpassword::prompt_password;
 use anyhow::{Result, bail};
 

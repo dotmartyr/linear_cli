@@ -68,8 +68,8 @@ fn load_app_info() -> io::Result<AppData> {
             Ok(serde_json::from_str(&contents).unwrap_or_else(|_| AppData::default()))
         },
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
-            Ok(AppData::default())  // Return default if file doesn't exist
+            Ok(AppData::default())
         },
-        Err(e) => Err(e),  // Propagate other kinds of errors
+        Err(e) => Err(e),
     }
 }

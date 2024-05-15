@@ -1,6 +1,5 @@
 use clap::{App, Command};
 use anyhow::Result;
-use tokio;
 
 mod api;
 mod storage;

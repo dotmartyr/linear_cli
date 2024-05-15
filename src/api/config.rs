@@ -1,4 +1,4 @@
-use crate::storage::{set_user_info};
+use crate::storage::set_user_info;
 use super::users::users;
 use super::token::{get_token, set_token};
 use dialoguer::{Select, theme::ColorfulTheme};

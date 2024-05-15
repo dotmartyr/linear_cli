@@ -1,7 +1,7 @@
-use serde::{Deserialize};
+use serde::Deserialize;
 use serde_json::json;
 use super::client;
-use crate::storage::{set_team_info};
+use crate::storage::set_team_info;
 use anyhow::{Result, Context};
 use dialoguer::{Select, theme::ColorfulTheme};
 use console::Term;

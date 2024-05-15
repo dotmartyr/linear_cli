@@ -4,7 +4,6 @@ use super::client;
 use crate::storage::get_user_info;
 use anyhow::{Result, Context, bail};
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserNode {
     pub id: String,
