@@ -36,15 +36,15 @@ pub fn get_team_info() -> Option<TeamInfo> {
     APP_INFO.lock().unwrap().team.clone()
 }
 
-pub fn set_user_info(id: String, name: String) -> io::Result<()> {
-    let mut app_data = APP_INFO.lock().unwrap();
-    app_data.user = Some(UserInfo { id, name });
-    save_app_info(&app_data)
-}
+// pub fn set_user_info(id: String, name: String) -> io::Result<()> {
+//     let mut app_data = APP_INFO.lock().unwrap();
+//     app_data.user = Some(UserInfo { id, name });
+//     save_app_info(&app_data)
+// }
 
-pub fn get_user_info() -> Option<UserInfo> {
-    APP_INFO.lock().unwrap().user.clone()
-}
+// pub fn get_user_info() -> Option<UserInfo> {
+//     APP_INFO.lock().unwrap().user.clone()
+// }
 
 pub fn clear_app_info() -> io::Result<()> {
     let mut app_data = APP_INFO.lock().unwrap();

@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
 
     match app.subcommand() {
         Some(("config", _)) => api::config::configure().await,
-        Some(("me", _)) => Ok(api::users::me()?),
+        Some(("me", _)) => api::users::print_me().await,
         Some(("teams", _)) => api::teams::print_teams().await,
         Some(("select-team", _)) => api::teams::select_team().await,
         _ => {

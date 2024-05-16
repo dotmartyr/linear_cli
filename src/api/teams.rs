@@ -50,7 +50,7 @@ pub async fn teams() -> Result<Vec<TeamNode>> {
 pub async fn print_teams() -> Result<()> {
     let team_nodes = teams().await?;
     
-    println!("List of Teams:");
+    println!("Your Teams:");
     for team in team_nodes {
         println!("{}", team.name);
     }

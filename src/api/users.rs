@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use super::client;
-use crate::storage::get_user_info;
-use anyhow::{Result, Context, bail};
+use anyhow::{Result, Context};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserNode {
@@ -23,6 +22,23 @@ struct Users {
 #[derive(Serialize, Deserialize, Debug)]
 struct UsersResponse {
     data: Users,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Me {
+    id: String,
+    name: String,
+    email: String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Viewer {
+    viewer: Me,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct MeResponse {
+    data: Viewer,
 }
 
 pub async fn users() -> Result<Vec<UserNode>, anyhow::Error> {
@@ -46,11 +62,33 @@ pub async fn users() -> Result<Vec<UserNode>, anyhow::Error> {
     Ok(users_response.data.users.nodes)
 }
 
-pub fn me() -> Result<()> {
-    if let Some(user) = get_user_info() {
-        println!("Current user: {}", user.name);
-        Ok(())
-    } else {
-        bail!("No current user set.");
-    }
+async fn me() -> Result<Me, anyhow::Error> {
+    let query = json!({
+        "query": r#"
+            query Me {
+                viewer {
+                    id
+                    name
+                    email
+                }
+            }
+        "#
+    });
+
+    let response = client::make_request(&query.to_string()).await?;
+    let me_response: MeResponse = serde_json::from_str(&response)
+        .context("Failed to parse JSON response")?;
+
+    Ok(me_response.data.viewer)
+}
+
+pub async fn print_me() -> Result<()> {
+    let me = me().await?;
+
+    println!("You are: ");
+    println!("Name: {}", me.name);
+    println!("Email: {}", me.email);
+    println!("ID: {}", me.id);
+
+    Ok(())
 }
