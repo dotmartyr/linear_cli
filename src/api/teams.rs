@@ -29,19 +29,10 @@ struct TeamsResponse {
 
 pub async fn teams() -> Result<Vec<TeamNode>> {
     let query = json!({
-        "query": r#"
-            query Teams {
-              teams {
-                nodes {
-                  id
-                  name
-                }
-              }
-            }
-        "#
+        "query": super::graphql_queries::TEAMS_QUERY,
     });
 
-    let response = client::make_request(&query.to_string()).await?;
+    let response = client::make_request(&query).await?;
     let teams_response: TeamsResponse = serde_json::from_str(&response)
         .context("Failed to parse JSON response")?;
     Ok(teams_response.data.teams.nodes)

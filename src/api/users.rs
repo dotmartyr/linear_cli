@@ -43,19 +43,10 @@ struct MeResponse {
 
 pub async fn users() -> Result<Vec<UserNode>, anyhow::Error> {
     let query = json!({
-        "query": r#"
-            query {
-              users {
-                nodes {
-                  name
-                  id
-                }
-              }
-            }
-        "#
+        "query": super::graphql_queries::USERS_QUERY,
     });
 
-    let response = client::make_request(&query.to_string()).await?;
+    let response = client::make_request(&query).await?;
     let users_response: UsersResponse = serde_json::from_str(&response)
         .context("Failed to parse JSON response")?;
 
@@ -64,18 +55,10 @@ pub async fn users() -> Result<Vec<UserNode>, anyhow::Error> {
 
 async fn me() -> Result<Me, anyhow::Error> {
     let query = json!({
-        "query": r#"
-            query Me {
-                viewer {
-                    id
-                    name
-                    email
-                }
-            }
-        "#
+        "query": super::graphql_queries::ME_QUERY,
     });
 
-    let response = client::make_request(&query.to_string()).await?;
+    let response = client::make_request(&query).await?;
     let me_response: MeResponse = serde_json::from_str(&response)
         .context("Failed to parse JSON response")?;
 

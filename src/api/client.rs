@@ -1,7 +1,8 @@
 use reqwest::{Client, header};
+use serde_json::Value;
 use anyhow::{Result, Context};
 
-pub async fn make_request(payload: &str) -> Result<String> {
+pub async fn make_request(payload: &Value) -> Result<String> {
     let token = super::token::get_token()?;
 
     let client = Client::new();

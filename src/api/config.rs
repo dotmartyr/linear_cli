@@ -9,9 +9,8 @@ pub async fn configure() -> Result<()> {
             println!("Using existing API token.");
         },
         _ => {
-            // Prompt for a new token if not set or empty
             println!("No API token found or token is empty.");
-            set_token()?;  // Set new token
+            set_token()?;
         }
     }
 
