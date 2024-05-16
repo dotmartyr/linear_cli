@@ -1,16 +1,18 @@
+use anyhow::{Context, Result};
 use reqwest::{Client, header};
 use serde_json::Value;
-use anyhow::{Result, Context};
+use std::sync::OnceLock;
+
+static CLIENT: OnceLock<Client> = OnceLock::new();
 
 pub async fn make_request(payload: &Value) -> Result<String> {
     let token = super::token::get_token()?;
-
-    let client = Client::new();
-    let payload_owned = payload.to_string();  // Clone the payload to own it
+    
+    let client = CLIENT.get_or_init(|| Client::new());
     let res = client.post("https://api.linear.app/graphql")
         .header(header::AUTHORIZATION, token)
         .header(header::CONTENT_TYPE, "application/json")
-        .body(payload_owned)
+        .json(payload)
         .send()
         .await
         .context("Failed to send request to Linear API")?;
