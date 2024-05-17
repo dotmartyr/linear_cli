@@ -1,6 +1,6 @@
+use anyhow::{bail, Result};
 use keyring::Entry;
 use rpassword::prompt_password;
-use anyhow::{Result, bail};
 
 pub fn set_token() -> Result<()> {
     let token = prompt_password("Your API Token: ")?;

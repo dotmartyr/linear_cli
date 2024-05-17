@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{self, Read};
+use std::sync::Mutex;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct AppData {
@@ -22,9 +22,8 @@ pub struct UserInfo {
     pub name: String,
 }
 
-static APP_INFO: Lazy<Mutex<AppData>> = Lazy::new(|| {
-    Mutex::new(load_app_info().unwrap_or_default())
-});
+static APP_INFO: Lazy<Mutex<AppData>> =
+    Lazy::new(|| Mutex::new(load_app_info().unwrap_or_default()));
 
 pub fn set_team_info(id: String, name: String) -> io::Result<()> {
     let mut app_data = APP_INFO.lock().unwrap();
@@ -66,10 +65,8 @@ fn load_app_info() -> io::Result<AppData> {
             let mut contents = String::new();
             file.read_to_string(&mut contents)?;
             Ok(serde_json::from_str(&contents).unwrap_or_else(|_| AppData::default()))
-        },
-        Err(e) if e.kind() == io::ErrorKind::NotFound => {
-            Ok(AppData::default())
-        },
+        }
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(AppData::default()),
         Err(e) => Err(e),
     }
 }

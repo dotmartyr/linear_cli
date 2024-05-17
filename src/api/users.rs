@@ -1,7 +1,7 @@
+use super::client;
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use super::client;
-use anyhow::{Result, Context};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserNode {
@@ -25,10 +25,10 @@ struct UsersResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Me {
-    id: String,
+pub struct Me {
+    pub id: String,
     name: String,
-    email: String
+    email: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -41,26 +41,26 @@ struct MeResponse {
     data: Viewer,
 }
 
-pub async fn users() -> Result<Vec<UserNode>, anyhow::Error> {
+// pub async fn users() -> Result<Vec<UserNode>, anyhow::Error> {
+//     let query = json!({
+//         "query": super::graphql_queries::USERS,
+//     });
+
+//     let response = client::make_request(&query).await?;
+//     let users_response: UsersResponse = serde_json::from_str(&response)
+//         .context("Failed to parse JSON response")?;
+
+//     Ok(users_response.data.users.nodes)
+// }
+
+pub async fn me() -> Result<Me, anyhow::Error> {
     let query = json!({
-        "query": super::graphql_queries::USERS_QUERY,
+        "query": super::graphql_queries::ME,
     });
 
     let response = client::make_request(&query).await?;
-    let users_response: UsersResponse = serde_json::from_str(&response)
-        .context("Failed to parse JSON response")?;
-
-    Ok(users_response.data.users.nodes)
-}
-
-async fn me() -> Result<Me, anyhow::Error> {
-    let query = json!({
-        "query": super::graphql_queries::ME_QUERY,
-    });
-
-    let response = client::make_request(&query).await?;
-    let me_response: MeResponse = serde_json::from_str(&response)
-        .context("Failed to parse JSON response")?;
+    let me_response: MeResponse =
+        serde_json::from_str(&response).context("Failed to parse JSON response")?;
 
     Ok(me_response.data.viewer)
 }
