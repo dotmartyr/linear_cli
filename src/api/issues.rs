@@ -104,54 +104,57 @@ pub async fn issue(issue_id: &str) -> Result<Issue> {
     let response = client::make_request(&query).await?;
     let issue_response: IssueResponse =
         serde_json::from_str(&response).context("Failed to parse JSON response")?;
-
     Ok(issue_response.data.issue)
 }
 
 pub async fn select_issue(state_name: Option<&str>) -> Result<()> {
     let me = super::users::me().await?;
     loop {
-        let issue_nodes = super::issues::issues(&me.id, state_name).await?;
-        let issue_options: Vec<String> = issue_nodes
-            .iter()
-            .map(|issue| format!("{} - {}", issue.team.name, issue.title))
-            .collect();
+        let issue_nodes = issues(&me.id, state_name).await?;
+        if issue_nodes.is_empty() {
+            println!("No issues found.");
+            break;
+        }
 
-        let selection = Select::with_theme(&ColorfulTheme::default())
-            .with_prompt("View Issue")
-            .items(&issue_options)
-            .default(0)
-            .interact_on_opt(&Term::stderr())?;
+        if let Some(selected_issue) = handle_user_selection(&issue_nodes).await? {
+            print_issue_details(&selected_issue.id).await?;
 
-        match selection {
-            Some(index) => {
-                let selected_issue = &issue_nodes[index];
-                print_issue_details(&selected_issue.id).await?;
-
-                // Submenu after showing issue details
-                if Confirm::with_theme(&ColorfulTheme::default())
-                    .with_prompt("Set as the selected issue?")
-                    .interact()?
-                {
-                    set_selected_issue(selected_issue.id.clone(), selected_issue.title.clone())?;
-                    println!("Issue set as selected.");
-                    break; // Exit the function immediately after setting the issue
-                }
-                // No else needed, loop will continue automatically returning to the issue list
-            }
-            None => {
-                println!("No issue selected.");
+            if Confirm::with_theme(&ColorfulTheme::default())
+                .with_prompt("Set as the selected issue?")
+                .interact()?
+            {
+                set_selected_issue(selected_issue.id.clone(), selected_issue.title.clone())?;
+                println!("Issue set as selected.");
                 break;
             }
+        } else {
+            println!("No issue selected.");
+            break;
         }
     }
     Ok(())
 }
 
+async fn handle_user_selection(issue_nodes: &[IssueNode]) -> Result<Option<&IssueNode>> {
+    let selection_index = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Select an issue to view details")
+        .items(
+            &issue_nodes
+                .iter()
+                .map(|issue| format!("{} - {}", issue.team.name, issue.title))
+                .collect::<Vec<_>>(),
+        )
+        .default(0)
+        .interact_on_opt(&Term::stderr())?;
+
+    Ok(selection_index.map(|index| &issue_nodes[index]))
+}
+
 async fn print_issue_details(issue_id: &str) -> Result<()> {
-    let detailed_issue = super::issues::issue(issue_id).await?;
+    let detailed_issue = issue(issue_id).await?;
     let blue_bold = Style::new().blue().bold();
 
+    println!("{}", blue_bold.apply_to("Issue Details:"));
     println!(
         "{} {}",
         blue_bold.apply_to("Team Name:"),
@@ -164,12 +167,18 @@ async fn print_issue_details(issue_id: &str) -> Result<()> {
         detailed_issue.description
     );
 
+    let _ = print_comments(&detailed_issue.comments).await;
+
+    Ok(())
+}
+
+async fn print_comments(comments: &CommentNodes) -> Result<()> {
+    let blue_bold = Style::new().blue().bold();
     println!("{}", blue_bold.apply_to("\nComments:"));
-    for comment in detailed_issue.comments.nodes {
+    for comment in &comments.nodes {
         println!("==============");
         println!(" - {}: {}", comment.created_at, comment.body);
     }
-
     Ok(())
 }
 
