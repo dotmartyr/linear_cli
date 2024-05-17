@@ -1,0 +1,14 @@
+# Set maximum line width
+max_width = 100
+
+# Use spaces for indentation
+hard_tabs = false
+
+# Use 4 spaces for indentation (default is 2)
+tab_spaces = 4
+
+# Rearrange imports automatically
+reorder_imports = true
+
+# Reorder module declarations
+reorder_modules = true
