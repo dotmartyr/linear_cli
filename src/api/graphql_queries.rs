@@ -1,11 +1,11 @@
 pub const ME: &str = r#"
-  query Me {
-      viewer {
-          id
-          name
-          email
-      }
-  }
+    query Me {
+        viewer {
+            id
+            name
+            email
+        }
+    }
 "#;
 
 // pub const USERS: &str = r#"
@@ -20,33 +20,33 @@ pub const ME: &str = r#"
 // "#;
 
 pub const TEAMS: &str = r#"
-  query Teams {
-    teams {
-      nodes {
-        id
-        name
-      }
+    query Teams {
+        teams {
+            nodes {
+                id
+                name
+            }
+        }
     }
-  }
 "#;
 
 pub const ISSUES: &str = r#"
-  query UserIssues($userId: ID!, $stateName: String, $teamName: String) {
-    issues(filter: { assignee: { id: { eq: $userId } }, state: { name: { eq: $stateName } }, team: { name: { eq: $teamName}} }) {
-      nodes {
-        id
-        title
-        state {
-          id
-          name
+    query UserIssues($userId: ID!, $stateName: String, $teamName: String) {
+        issues(filter: { assignee: { id: { eq: $userId } }, state: { name: { eq: $stateName } }, team: { name: { eq: $teamName}} }) {
+            nodes {
+                id
+                title
+                state {
+                    id
+                    name
+                }
+                team {
+                    id
+                    name
+                }
+            }
         }
-        team {
-          id
-          name
-        }
-      }
     }
-  }
 "#;
 
 pub const ISSUE: &str = r#"
@@ -56,12 +56,12 @@ pub const ISSUE: &str = r#"
             title
             description
             state {
-              id
-              name
+                id
+                name
             }
             team {
-              id
-              name
+                id
+                name
             }
             comments {
                 nodes {

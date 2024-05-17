@@ -14,12 +14,15 @@ async fn main() -> Result<()> {
         .subcommand(Command::new("me").about("Display the current user's name"))
         .subcommand(Command::new("teams").about("List all teams from Linear"))
         .subcommand(
-            Command::new("select-team").about("Select a team for context on further commands."),
+            Command::new("team:select").about("Select a team for context on further commands."),
         )
-        //.subcommand(Command::new("issues").about("Get user issues"))
         .subcommand(Command::new("issues:ready").about("List your issues with 'Ready' state"))
         .subcommand(
             Command::new("issues:active").about("List your issues with 'In Progress' state"),
+        )
+        .subcommand(Command::new("issue:selected").about("Display details of the selected issue"))
+        .subcommand(
+            Command::new("issue:selected:clear").about("Clear the currently selected issue"),
         )
         .get_matches();
 
@@ -27,10 +30,15 @@ async fn main() -> Result<()> {
         Some(("config", _)) => api::config::configure().await,
         Some(("me", _)) => api::users::print_me().await,
         Some(("teams", _)) => api::teams::print_teams().await,
-        Some(("select-team", _)) => api::teams::select_team().await,
-        //Some(("issues", _)) => api::issues::print_issues(None).await,
+        Some(("team:select", _)) => api::teams::select_team().await,
         Some(("issues:ready", _)) => api::issues::select_issue(Some("Ready")).await,
         Some(("issues:active", _)) => api::issues::select_issue(Some("In Progress")).await,
+        Some(("issue:selected", _)) => api::issues::print_selected_issue().await,
+        Some(("issue:selected:clear", _)) => {
+            storage::clear_app_info(storage::ClearOption::Issue)?;
+            Ok(())
+        }
+
         _ => {
             eprintln!("Unknown command. Use '--help' for more information.");
             Ok(())

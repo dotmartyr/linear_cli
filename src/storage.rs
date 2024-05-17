@@ -4,10 +4,16 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::sync::Mutex;
 
+pub enum ClearOption {
+    Team,
+    Issue,
+    All,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct AppData {
     team: Option<TeamInfo>,
-    user: Option<UserInfo>,
+    issue: Option<IssueInfo>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -17,7 +23,7 @@ pub struct TeamInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct UserInfo {
+pub struct IssueInfo {
     pub id: String,
     pub name: String,
 }
@@ -35,20 +41,26 @@ pub fn get_team_info() -> Option<TeamInfo> {
     APP_INFO.lock().unwrap().team.clone()
 }
 
-// pub fn set_user_info(id: String, name: String) -> io::Result<()> {
-//     let mut app_data = APP_INFO.lock().unwrap();
-//     app_data.user = Some(UserInfo { id, name });
-//     save_app_info(&app_data)
-// }
-
-// pub fn get_user_info() -> Option<UserInfo> {
-//     APP_INFO.lock().unwrap().user.clone()
-// }
-
-pub fn clear_app_info() -> io::Result<()> {
+pub fn set_selected_issue(id: String, name: String) -> io::Result<()> {
     let mut app_data = APP_INFO.lock().unwrap();
-    app_data.team = None;
-    app_data.user = None;
+    app_data.issue = Some(IssueInfo { id, name });
+    save_app_info(&app_data)
+}
+
+pub fn get_selected_issue() -> Option<IssueInfo> {
+    APP_INFO.lock().unwrap().issue.clone()
+}
+
+pub fn clear_app_info(option: ClearOption) -> io::Result<()> {
+    let mut app_data = APP_INFO.lock().unwrap();
+    match option {
+        ClearOption::Team => app_data.team = None,
+        ClearOption::Issue => app_data.issue = None,
+        ClearOption::All => {
+            app_data.team = None;
+            app_data.issue = None;
+        }
+    }
     save_app_info(&app_data)
 }
 
