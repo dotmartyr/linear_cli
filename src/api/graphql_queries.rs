@@ -30,9 +30,19 @@ pub const TEAMS: &str = r#"
     }
 "#;
 
+pub const TEAM: &str = r#"
+    query Team($teamId: String!) {
+        team(id: $teamId) {
+            id
+            name
+            description
+        }
+    }
+"#;
+
 pub const ISSUES: &str = r#"
-    query UserIssues($userId: ID!, $stateName: String, $teamName: String) {
-        issues(filter: { assignee: { id: { eq: $userId } }, state: { name: { eq: $stateName } }, team: { name: { eq: $teamName}} }) {
+    query UserIssues($userId: ID!, $stateName: String, $teamId: ID) {
+        issues(filter: { assignee: { id: { eq: $userId } }, state: { name: { eq: $stateName } }, team: { id: { eq: $teamId}} }) {
             nodes {
                 id
                 title

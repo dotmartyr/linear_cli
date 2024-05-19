@@ -1,8 +1,8 @@
 use super::client;
-use crate::storage::{get_selected_issue, set_selected_issue};
+use crate::api::config::read_team_id_from_config;
 use anyhow::{Context, Result};
 use console::{Style, Term};
-use dialoguer::{theme::ColorfulTheme, Confirm, Select};
+use dialoguer::{theme::ColorfulTheme, Select};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -74,12 +74,18 @@ struct CommentNodes {
 }
 
 pub async fn issues(user_id: &str, state_name: Option<&str>) -> Result<Vec<IssueNode>> {
+    let team_id = read_team_id_from_config()?;
+
     let mut variables = serde_json::json!({
         "userId": user_id,
     });
 
     if let Some(sname) = state_name {
         variables["stateName"] = serde_json::json!(sname);
+    }
+
+    if let Some(t_id) = team_id {
+        variables["teamId"] = serde_json::json!(t_id);
     }
 
     let query = json!({
@@ -118,15 +124,6 @@ pub async fn select_issue(state_name: Option<&str>) -> Result<()> {
 
         if let Some(selected_issue) = handle_user_selection(&issue_nodes).await? {
             print_issue_details(&selected_issue.id).await?;
-
-            if Confirm::with_theme(&ColorfulTheme::default())
-                .with_prompt("Set as the selected issue?")
-                .interact()?
-            {
-                set_selected_issue(selected_issue.id.clone(), selected_issue.title.clone())?;
-                println!("Issue set as selected.");
-                break;
-            }
         } else {
             println!("No issue selected.");
             break;
@@ -180,13 +177,4 @@ async fn print_comments(comments: &CommentNodes) -> Result<()> {
         println!(" - {}: {}", comment.created_at, comment.body);
     }
     Ok(())
-}
-
-pub async fn print_selected_issue() -> Result<()> {
-    if let Some(issue_info) = get_selected_issue() {
-        print_issue_details(&issue_info.id).await
-    } else {
-        println!("No selected issue.");
-        Ok(())
-    }
 }

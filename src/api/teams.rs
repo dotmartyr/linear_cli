@@ -1,15 +1,15 @@
 use super::client;
-use crate::storage::set_team_info;
+use crate::api::config::read_team_id_from_config;
 use anyhow::{Context, Result};
 use console::Term;
 use dialoguer::{theme::ColorfulTheme, Select};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TeamNode {
-    id: String,
-    name: String,
+    pub id: String,
+    pub name: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -27,6 +27,16 @@ struct TeamsResponse {
     data: TeamsData,
 }
 
+#[derive(Deserialize, Debug)]
+struct TeamData {
+    team: TeamNode,
+}
+
+#[derive(Deserialize, Debug)]
+struct TeamResponse {
+    data: TeamData,
+}
+
 pub async fn teams() -> Result<Vec<TeamNode>> {
     let query = json!({
         "query": super::graphql_queries::TEAMS,
@@ -36,6 +46,30 @@ pub async fn teams() -> Result<Vec<TeamNode>> {
     let teams_response: TeamsResponse =
         serde_json::from_str(&response).context("Failed to parse JSON response")?;
     Ok(teams_response.data.teams.nodes)
+}
+
+pub async fn team(team_id: &str) -> Result<TeamNode> {
+    let query = json!({
+        "query": super::graphql_queries::TEAM,
+        "variables": {
+            "teamId": team_id
+        }
+    });
+
+    let response = client::make_request(&query).await?;
+    let team_response: TeamResponse =
+        serde_json::from_str(&response).context("Failed to parse team JSON response")?;
+
+    Ok(team_response.data.team)
+}
+
+pub async fn configured_team() -> Result<Option<TeamNode>> {
+    if let Some(team_id) = read_team_id_from_config()? {
+        let team = team(&team_id).await?;
+        Ok(Some(team))
+    } else {
+        Ok(None)
+    }
 }
 
 pub async fn print_teams() -> Result<()> {
@@ -49,23 +83,39 @@ pub async fn print_teams() -> Result<()> {
     Ok(())
 }
 
-pub async fn select_team() -> Result<()> {
+pub async fn print_configured_team_info() -> Result<()> {
+    match configured_team().await {
+        Ok(Some(team)) => {
+            println!("Configured Team: {}", team.name);
+        }
+        Ok(None) => {
+            println!("No configured team for this directory, please use the config:team command.");
+        }
+        Err(e) => {
+            println!("Error retrieving configured team: {}", e);
+            return Err(e);
+        }
+    }
+    Ok(())
+}
+
+pub async fn select_team() -> Result<TeamNode> {
     let team_nodes = teams().await?;
     let team_names: Vec<&str> = team_nodes.iter().map(|team| team.name.as_str()).collect();
 
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Pick a team")
-        .items(&team_names)
-        .default(0)
-        .interact_on_opt(&Term::stderr())?;
+    loop {
+        let selection = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Pick a team")
+            .items(&team_names)
+            .default(0)
+            .interact_on_opt(&Term::stderr())?;
 
-    if let Some(index) = selection {
-        let selected_team = &team_nodes[index];
-        set_team_info(selected_team.id.clone(), selected_team.name.clone())?;
-        println!("Team selected: {}", selected_team.name);
-    } else {
-        println!("No team selected.");
+        if let Some(index) = selection {
+            let selected_team = &team_nodes[index];
+            println!("Team selected: {}", selected_team.name);
+            return Ok(selected_team.clone());
+        } else {
+            println!("No team selected, please select a team.");
+        }
     }
-
-    Ok(())
 }
