@@ -10,48 +10,30 @@ pub struct UserNode {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct UsersNodes {
-    nodes: Vec<UserNode>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Users {
-    users: UsersNodes,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct UsersResponse {
-    data: Users,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct Me {
     pub id: String,
-    name: String,
-    email: String,
+    pub name: String,
+    pub email: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Viewer {
-    viewer: Me,
+pub struct MeResponse {
+    pub data: Viewer,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct MeResponse {
-    data: Viewer,
+pub struct Viewer {
+    pub viewer: Me,
 }
 
-// pub async fn users() -> Result<Vec<UserNode>, anyhow::Error> {
-//     let query = json!({
-//         "query": super::graphql_queries::USERS,
-//     });
-
-//     let response = client::make_request(&query).await?;
-//     let users_response: UsersResponse = serde_json::from_str(&response)
-//         .context("Failed to parse JSON response")?;
-
-//     Ok(users_response.data.users.nodes)
-// }
+impl Me {
+    pub fn print(&self) {
+        println!("You are: ");
+        println!("Name: {}", self.name);
+        println!("Email: {}", self.email);
+        println!("ID: {}", self.id);
+    }
+}
 
 pub async fn me() -> Result<Me, anyhow::Error> {
     let query = json!({
@@ -67,11 +49,6 @@ pub async fn me() -> Result<Me, anyhow::Error> {
 
 pub async fn print_me() -> Result<()> {
     let me = me().await?;
-
-    println!("You are: ");
-    println!("Name: {}", me.name);
-    println!("Email: {}", me.email);
-    println!("ID: {}", me.id);
-
+    me.print();
     Ok(())
 }

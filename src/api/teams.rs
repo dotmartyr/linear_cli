@@ -7,37 +7,43 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct TeamNode {
+pub struct Team {
     pub id: String,
     pub name: String,
 }
 
-#[derive(Deserialize, Debug)]
-struct TeamsNodes {
-    nodes: Vec<TeamNode>,
+impl Team {
+    pub fn print(&self) {
+        println!("{}", self.name);
+    }
 }
 
 #[derive(Deserialize, Debug)]
-struct TeamsData {
-    teams: TeamsNodes,
+pub struct TeamsNodes {
+    pub nodes: Vec<Team>,
 }
 
 #[derive(Deserialize, Debug)]
-struct TeamsResponse {
-    data: TeamsData,
+pub struct TeamsData {
+    pub teams: TeamsNodes,
 }
 
 #[derive(Deserialize, Debug)]
-struct TeamData {
-    team: TeamNode,
+pub struct TeamsResponse {
+    pub data: TeamsData,
 }
 
 #[derive(Deserialize, Debug)]
-struct TeamResponse {
-    data: TeamData,
+pub struct TeamData {
+    pub team: Team,
 }
 
-pub async fn teams() -> Result<Vec<TeamNode>> {
+#[derive(Deserialize, Debug)]
+pub struct TeamResponse {
+    pub data: TeamData,
+}
+
+pub async fn teams() -> Result<Vec<Team>> {
     let query = json!({
         "query": super::graphql_queries::TEAMS,
     });
@@ -48,7 +54,7 @@ pub async fn teams() -> Result<Vec<TeamNode>> {
     Ok(teams_response.data.teams.nodes)
 }
 
-pub async fn team(team_id: &str) -> Result<TeamNode> {
+pub async fn team(team_id: &str) -> Result<Team> {
     let query = json!({
         "query": super::graphql_queries::TEAM,
         "variables": {
@@ -63,12 +69,10 @@ pub async fn team(team_id: &str) -> Result<TeamNode> {
     Ok(team_response.data.team)
 }
 
-pub async fn configured_team() -> Result<Option<TeamNode>> {
-    if let Some(team_id) = read_team_id_from_config()? {
-        let team = team(&team_id).await?;
-        Ok(Some(team))
-    } else {
-        Ok(None)
+pub async fn configured_team() -> Result<Option<Team>> {
+    match read_team_id_from_config()? {
+        Some(team_id) => Ok(Some(team(&team_id).await?)),
+        None => Ok(None),
     }
 }
 
@@ -77,7 +81,7 @@ pub async fn print_teams() -> Result<()> {
 
     println!("Your Teams:");
     for team in team_nodes {
-        println!("{}", team.name);
+        team.print();
     }
 
     Ok(())
@@ -99,7 +103,7 @@ pub async fn print_configured_team_info() -> Result<()> {
     Ok(())
 }
 
-pub async fn select_team() -> Result<TeamNode> {
+pub async fn select_team() -> Result<Team> {
     let team_nodes = teams().await?;
     let team_names: Vec<&str> = team_nodes.iter().map(|team| team.name.as_str()).collect();
 
